@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadastro de Endereço dos Padrinhos
-
-</title>
+    <title>Cadastro de Endereço dos Padrinhos</title>
     
     <!-- Fontes e Ícones -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -77,7 +75,7 @@
 
                 <div class="input-group">
                     <label>CEP *</label>
-                    <input type="text" id="cep" required placeholder="00000-000" maxlength="9" onblur="buscarCep(this.value)">
+                    <input type="text" id="cep" required placeholder="00000-000" maxlength="9" oninput="mascaraCep(this)" onblur="buscarCep(this.value)">
                 </div>
 
                 <div class="input-group">
@@ -117,6 +115,27 @@
         // Substitua pela URL gerada ao implantar seu Google Apps Script como Web App
         const URL_DO_SEU_WEB_APP = 'https://script.google.com/macros/s/AKfycbyPagTjVhwn10ECJiYgFH9HjfWk54ZSvRT554QP7AKsEKBlsF6XVW6dJsOEEBIj8ZUT/exec';
 
+        // Função para formatar o texto com a primeira letra maiúscula em cada palavra
+        function capitalizarTexto(texto) {
+            if (!texto) return '';
+            const excecoes = ['de', 'da', 'do', 'das', 'dos', 'e'];
+            return texto.toLowerCase().split(' ').map((palavra, index) => {
+                if (excecoes.includes(palavra) && index > 0) {
+                    return palavra;
+                }
+                return palavra.charAt(0).toUpperCase() + palavra.slice(1);
+            }).join(' ');
+        }
+
+        // Máscara automática de CEP
+        function mascaraCep(input) {
+            let valor = input.value.replace(/\D/g, '');
+            if (valor.length > 5) {
+                valor = valor.replace(/^(\d{5})(\d)/, '$1-$2');
+            }
+            input.value = valor;
+        }
+
         // Função para preencher automaticamente o endereço via ViaCEP
         async function buscarCep(cepValor) {
             let cepLimpo = cepValor.replace(/\D/g, '');
@@ -147,7 +166,7 @@
         async function enviarDados(e) {
             e.preventDefault();
             
-            // Formata os nomes para que a primeira letra de cada palavra sejarma maiúscula
+            // Pega os valores e aplica a formatação de letras maiúsculas nas iniciais
             let esposaFormatada = capitalizarTexto(document.getElementById('nomeEsposa').value.trim());
             let maridoFormatado = capitalizarTexto(document.getElementById('nomeMarido').value.trim());
 
@@ -160,7 +179,6 @@
                 numero: document.getElementById('numero').value.trim(),
                 referencia: document.getElementById('referencia').value.trim()
             };
-            // ... resto do código de envio
 
             document.getElementById('btnSalvar').style.display = 'none';
             document.getElementById('loadingDiv').style.display = 'block';
@@ -183,7 +201,7 @@
                     document.getElementById('tituloPrincipal').style.display = 'none';
                     document.getElementById('telaSucesso').style.display = 'block';
 
-                    let segundosRestantes = 5;
+                    let segundosRestantes = 10;
                     let intervalo = setInterval(function() {
                         segundosRestantes--;
                         document.getElementById('contador').innerText = segundosRestantes;
@@ -202,17 +220,6 @@
                 alert("Erro durante o envio: " + erro);
                 document.getElementById('btnSalvar').style.display = 'block';
             }
-        }
-        // Função para formatar o texto com a primeira letra maiúscula
-        function capitalizarTexto(texto) {
-            if (!texto) return '';
-            const excecoes = ['de', 'da', 'do', 'das', 'dos', 'e'];
-            return texto.toLowerCase().split(' ').map((palavra, index) => {
-                if (excecoes.includes(palavra) && index > 0) {
-                    return palavra;
-                }
-                return palavra.charAt(0).toUpperCase() + palavra.slice(1);
-            }).join(' ');
         }
 
         function voltarAoInicio() {
