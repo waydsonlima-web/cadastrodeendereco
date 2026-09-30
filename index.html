@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Casal</title>
+    
+    <!-- Fontes e Ícones -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+        body { 
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://raw.githubusercontent.com/waydsonlima-web/fotos_ejcsocorro2027/main/m%C3%A3e-do-perp%C3%A9tuo-socorro.jpg') no-repeat center center fixed; 
+            background-size: cover; 
+            min-height: 100vh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            padding: 15px; 
+        }
+        .mobile-container { 
+            width: 100%; 
+            max-width: 500px; 
+            background: rgba(255, 255, 255, 0.95); 
+            backdrop-filter: blur(10px); 
+            border-radius: 20px; 
+            padding: 25px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3); 
+            text-align: center; 
+        }
+        h2 { color: #2c3e50; font-weight: 600; margin-bottom: 20px; font-size: 24px; }
+        
+        .form-section { text-align: left; animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; font-size: 15px; color: #475569; margin-bottom: 5px; font-weight: 500; }
+        .input-group input { width: 100%; padding: 12px 15px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 16px; outline: none; transition: border 0.3s; background-color: #fff; }
+        .input-group input:focus { border-color: #d4af37; }
+        .input-group input:disabled { background-color: #f1f5f9; color: #64748b; }
+        
+        .save-btn { width: 100%; padding: 14px; background: #27ae60; color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3); transition: background 0.3s; margin-top: 5px; }
+        .save-btn:hover { background: #219653; }
+        
+        .loading, .success-screen { display: none; text-align: center; margin-top: 15px; color: #555; font-size: 16px; }
+        .loading i { animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .success-screen { padding: 20px 0; }
+        .success-screen i { font-size: 45px; color: #27ae60; margin-bottom: 10px; }
+        .success-screen h3 { color: #2c3e50; margin-bottom: 8px; }
+        .success-screen p { color: #64748b; font-size: 15px; }
+    </style>
+</head>
+<body>
+
+    <div class="mobile-container">
+        <h2 id="tituloPrincipal">Cadastro de Perfil</h2>
+        
+        <!-- Formulário -->
+        <div id="formulario" class="form-section">
+            <form id="uploadForm" onsubmit="enviarDados(event)">
+                
+                <div class="input-group">
+                    <label>Nome da Esposa *</label>
+                    <input type="text" id="nomeEsposa" required placeholder="Digite o nome da esposa">
+                </div>
+
+                <div class="input-group">
+                    <label>Nome do Marido *</label>
+                    <input type="text" id="nomeMarido" required placeholder="Digite o nome do marido">
+                </div>
+
+                <div class="input-group">
+                    <label>CEP *</label>
+                    <input type="text" id="cep" required placeholder="00000-000" maxlength="9" onblur="buscarCep(this.value)">
+                </div>
+
+                <div class="input-group">
+                    <label>Endereço *</label>
+                    <input type="text" id="endereco" required placeholder="Preenchido automaticamente pelo CEP" disabled>
+                </div>
+
+                <div class="input-group">
+                    <label>Número *</label>
+                    <input type="text" id="numero" required placeholder="Ex: 123">
+                </div>
+
+                <div class="input-group">
+                    <label>Ponto de Referência</label>
+                    <input type="text" id="referencia" placeholder="Ex: Próximo à praça central">
+                </div>
+
+                <button type="submit" class="save-btn" id="btnSalvar">Enviar</button>
+                
+                <div class="loading" id="loadingDiv">
+                    <i class="fa-solid fa-spinner fa-spin"></i> Salvando dados, aguarde...
+                </div>
+            </form>
+        </div>
+
+        <!-- Tela de Sucesso -->
+        <div class="success-screen" id="telaSucesso">
+            <i class="fa-solid fa-circle-check"></i>
+            <h3>Obrigado!</h3>
+            <p>Isso vai nos ajudar a encontrar o jovem perfeito para você.</p>
+            <p style="margin-top: 15px; font-weight: 500; color: #d4af37;">Retornando ao início em <span id="contador">5</span> segundos...</p>
+        </div>
+    </div>
+
+    <script>
+        // Substitua pela URL gerada ao implantar seu Google Apps Script como Web App
+        const URL_DO_SEU_WEB_APP = 'https://script.google.com/macros/s/AKfycbyPagTjVhwn10ECJiYgFH9HjfWk54ZSvRT554QP7AKsEKBlsF6XVW6dJsOEEBIj8ZUT/exec';
+
+        // Função para preencher automaticamente o endereço via ViaCEP
+        async function buscarCep(cepValor) {
+            let cepLimpo = cepValor.replace(/\D/g, '');
+            if (cepLimpo.length !== 8) return;
+
+            const inputEndereco = document.getElementById('endereco');
+            inputEndereco.value = "Buscando endereço...";
+
+            try {
+                const resposta = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
+                const dados = await resposta.json();
+
+                if (!dados.erro) {
+                    inputEndereco.value = `${dados.logradouro}, ${dados.bairro} - ${dados.localidade}/${dados.uf}`;
+                    inputEndereco.disabled = false; // Habilita caso queira permitir ajuste manual
+                } else {
+                    inputEndereco.value = '';
+                    inputEndereco.disabled = false;
+                    alert("CEP não encontrado. Preencha o endereço manualmente.");
+                }
+            } catch (erro) {
+                inputEndereco.value = '';
+                inputEndereco.disabled = false;
+                alert("Erro ao buscar o CEP.");
+            }
+        }
+
+        async function enviarDados(e) {
+            e.preventDefault();
+            
+            let dados = {
+                action: 'salvarDados',
+                esposa: document.getElementById('nomeEsposa').value.trim(),
+                marido: document.getElementById('nomeMarido').value.trim(),
+                cep: document.getElementById('cep').value.trim(),
+                endereco: document.getElementById('endereco').value.trim(),
+                numero: document.getElementById('numero').value.trim(),
+                referencia: document.getElementById('referencia').value.trim()
+            };
+
+            document.getElementById('btnSalvar').style.display = 'none';
+            document.getElementById('loadingDiv').style.display = 'block';
+
+            try {
+                // Envio para o Google Apps Script (Planilha Google)
+                const resposta = await fetch(URL_DO_SEU_WEB_APP, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    redirect: 'follow',
+                    body: JSON.stringify(dados)
+                });
+
+                const resJson = await resposta.json();
+
+                document.getElementById('loadingDiv').style.display = 'none';
+
+                if (resJson.sucesso) {
+                    document.getElementById('formulario').style.display = 'none';
+                    document.getElementById('tituloPrincipal').style.display = 'none';
+                    document.getElementById('telaSucesso').style.display = 'block';
+
+                    let segundosRestantes = 5;
+                    let intervalo = setInterval(function() {
+                        segundosRestantes--;
+                        document.getElementById('contador').innerText = segundosRestantes;
+                        if (segundosRestantes <= 0) {
+                            clearInterval(intervalo);
+                            voltarAoInicio();
+                        }
+                    }, 1000);
+                } else {
+                    alert("Erro retornado pelo servidor: " + (resJson.mensagem || "Verifique o Apps Script"));
+                    document.getElementById('btnSalvar').style.display = 'block';
+                }
+
+            } catch (erro) {
+                document.getElementById('loadingDiv').style.display = 'none';
+                alert("Erro durante o envio: " + erro);
+                document.getElementById('btnSalvar').style.display = 'block';
+            }
+        }
+
+        function voltarAoInicio() {
+            document.getElementById('uploadForm').reset();
+            document.getElementById('endereco').disabled = true;
+            
+            document.getElementById('telaSucesso').style.display = 'none';
+            document.getElementById('tituloPrincipal').style.display = 'block';
+            document.getElementById('formulario').style.display = 'block';
+            document.getElementById('btnSalvar').style.display = 'block';
+            document.getElementById('contador').innerText = "5";
+        }
+    </script>
+</body>
+</html>
