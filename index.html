@@ -147,15 +147,20 @@
         async function enviarDados(e) {
             e.preventDefault();
             
+            // Formata os nomes para que a primeira letra de cada palavra sejarma maiúscula
+            let esposaFormatada = capitalizarTexto(document.getElementById('nomeEsposa').value.trim());
+            let maridoFormatado = capitalizarTexto(document.getElementById('nomeMarido').value.trim());
+
             let dados = {
                 action: 'salvarDados',
-                esposa: document.getElementById('nomeEsposa').value.trim(),
-                marido: document.getElementById('nomeMarido').value.trim(),
+                esposa: esposaFormatada,
+                marido: maridoFormatado,
                 cep: document.getElementById('cep').value.trim(),
                 endereco: document.getElementById('endereco').value.trim(),
                 numero: document.getElementById('numero').value.trim(),
                 referencia: document.getElementById('referencia').value.trim()
             };
+            // ... resto do código de envio
 
             document.getElementById('btnSalvar').style.display = 'none';
             document.getElementById('loadingDiv').style.display = 'block';
@@ -197,6 +202,17 @@
                 alert("Erro durante o envio: " + erro);
                 document.getElementById('btnSalvar').style.display = 'block';
             }
+        }
+        // Função para formatar o texto com a primeira letra maiúscula
+        function capitalizarTexto(texto) {
+            if (!texto) return '';
+            const excecoes = ['de', 'da', 'do', 'das', 'dos', 'e'];
+            return texto.toLowerCase().split(' ').map((palavra, index) => {
+                if (excecoes.includes(palavra) && index > 0) {
+                    return palavra;
+                }
+                return palavra.charAt(0).toUpperCase() + palavra.slice(1);
+            }).join(' ');
         }
 
         function voltarAoInicio() {
